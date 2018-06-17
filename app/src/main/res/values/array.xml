@@ -1,3 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string-array name="animals">
+        <item>Медоед</item>
+        <item>Альбатрос</item>
+        <item>Броненосец</item>
+        <item>Опоссум</item>
+        <item>Акула-молот</item>
+        <item>Тихоокеанский альбатрос</item>
+        <item>Зебра</item>
+        <item>Медведка</item>
+        <item>Барабашка</item>
+        <item>Соседская собака рыжик</item>
+    </string-array>
 </resources>

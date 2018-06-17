@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">project1</string>
     <string name="greetings">Руденко Егор Дмитриевич запустил проект, какой он молодец! :))</string>
+    <string name="back">Назад</string>
 </resources>
