@@ -6,10 +6,8 @@
     tools:context=".NewFragment">
 
     <ImageButton
-        android:contentDescription="@string/back"
         android:id="@+id/backButton"
         android:layout_width="60sp"
         android:layout_height="40sp"
-        >
-    </ImageButton>
+        android:contentDescription="@string/back"></ImageButton>
 </FrameLayout>

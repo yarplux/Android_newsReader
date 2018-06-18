@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="animals">
+    <string-array name="res_list_animals">
         <item>Медоед</item>
         <item>Альбатрос</item>
         <item>Броненосец</item>
