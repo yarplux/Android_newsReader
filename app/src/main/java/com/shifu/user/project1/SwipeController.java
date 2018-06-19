@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.support.annotation.StringRes;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
@@ -42,7 +41,7 @@ public class SwipeController extends ItemTouchHelper.Callback {
     private static final float buttonWidth = 300;
 
 
-    public SwipeController(Context context, SwipeControllerActions buttonActions) {
+    SwipeController(Context context, SwipeControllerActions buttonActions) {
         this.context = context;
         this.buttonsActions = buttonActions;
     }

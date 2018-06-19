@@ -3,8 +3,6 @@ package com.shifu.user.project1;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -31,7 +29,7 @@ public class RecyclerViewFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        cartList = new LinkedList<String>(Arrays.asList(getResources().getStringArray(R.array.res_list_animals)));
+        cartList = new LinkedList<>(Arrays.asList(getResources().getStringArray(R.array.res_list_animals)));
     }
 
     @Override
@@ -42,7 +40,7 @@ public class RecyclerViewFragment extends Fragment {
 
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerView);
 
-        mLayoutManager = new LinearLayoutManager(getContext().getApplicationContext());
+        mLayoutManager = new LinearLayoutManager(getActivity());
 
         mRecyclerView.setLayoutManager(mLayoutManager);
 

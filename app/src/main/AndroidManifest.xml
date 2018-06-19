@@ -10,10 +10,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".MainActivity" android:theme="@style/AppTheme.Launcher">
+
+        <!--BACKUP STR-->
+        <!--android:theme="@style/AppTheme.Launcher"-->
+
+        <!--prevents the app from using the native ActionBar class to provide the app bar-->
+        <activity
+            android:name=".MainActivity"
+            android:theme="@style/AppTheme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
