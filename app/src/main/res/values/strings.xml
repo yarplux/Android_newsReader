@@ -6,4 +6,6 @@
     <string name="list">Список</string>
     <string name="add">Добавить</string>
     <string name="profile">Профиль</string>
+    <string name="save">Сохранить</string>
+    <string name="adding">Новый зверь:</string>
 </resources>

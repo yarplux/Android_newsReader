@@ -71,4 +71,9 @@ public class RecyclerViewFragment extends Fragment {
         return rootView;
     }
 
+    public void addItem(String str) {
+        cartList.add(str);
+        //mAdapter.notifyItemInserted(cartList.size());
+        mAdapter.notifyDataSetChanged();
+    }
 }
