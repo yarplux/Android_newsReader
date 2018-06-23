@@ -11,25 +11,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.TreeMap;
+import io.realm.Realm;
 
+// NOTE: Возможно ошибка с id базы, когда количество добавленных id превысит макс. int значение! (счи
 
 public class RecyclerViewFragment extends Fragment {
-//        implements SwipeController.SwipeControllerListener {
 
+    private Realm realm;
     protected RecyclerView mRecyclerView;
     protected CustomAdapter mAdapter;
     protected RecyclerView.LayoutManager mLayoutManager;
     SwipeController swipeController = null;
 
-    private List<String> cartList;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        cartList = new LinkedList<>(Arrays.asList(getResources().getStringArray(R.array.res_list_animals)));
+        Realm.init(getContext());
+        realm = Realm.getDefaultInstance();
+
+        if (realm.where(RealmModel.class).count() == 0) {
+            for (String str : getResources().getStringArray(R.array.res_list_animals)) {
+                Long number = new RealmController(this.getContext()).addInfo(str);
+            }
+        }
+
+        Log.d("Loaded base:", realm.where(RealmModel.class).findAll().toString());
+        Log.d("Max ID", realm.where(RealmModel.class).max("ID").toString());
     }
 
     @Override
@@ -44,20 +52,20 @@ public class RecyclerViewFragment extends Fragment {
 
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mAdapter = new CustomAdapter(cartList);
+        mAdapter = new CustomAdapter(realm.where(RealmModel.class).findAll().sort("ID"));
 
         mRecyclerView.setAdapter(mAdapter);
 
         swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
             @Override
-            public void onDelete(int position) {
-                mAdapter.cartList.remove(position);
-                mAdapter.notifyItemRemoved(position);
-                mAdapter.notifyItemRangeChanged(position, mAdapter.getItemCount());
+            public void onDelete(final int position) {
+                Log.d("Position to Delete: ", Integer.toString(position));
+                Log.d("ID to Delete: ",Long.toString(mAdapter.ItemID(position)));
+                new RealmController(getContext()).removeItemById(mAdapter.ItemID(position));
+                mAdapter.notifyDataSetChanged();
             }
         });
 
-        // add pass ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT as param
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
         itemTouchhelper.attachToRecyclerView(mRecyclerView);
 
@@ -72,8 +80,13 @@ public class RecyclerViewFragment extends Fragment {
     }
 
     public void addItem(String str) {
-        cartList.add(str);
-        //mAdapter.notifyItemInserted(cartList.size());
-        mAdapter.notifyDataSetChanged();
+        Long position = new RealmController(this.getContext()).addInfo(str);
+        Log.d("DB", realm.where(RealmModel.class).findAll().toString());
+        Log.d("Number DB:", Long.toString(realm.where(RealmModel.class).count()));
+        Log.d("Position:",Long.toString(position));
+        // DANGEROUS OPERATION, IF DB TOO MUCH!
+        int number = (int)(long) realm.where(RealmModel.class).count();
+        Log.d("Number tmap:", Long.toString(realm.where(RealmModel.class).count()));
+        mAdapter.notifyItemInserted(number);
     }
 }

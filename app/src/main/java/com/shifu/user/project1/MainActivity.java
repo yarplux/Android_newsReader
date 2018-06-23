@@ -8,6 +8,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity {
 
     public RecyclerViewFragment fragment_start;

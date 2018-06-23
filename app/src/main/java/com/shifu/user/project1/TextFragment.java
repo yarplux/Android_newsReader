@@ -12,9 +12,6 @@ import android.widget.Button;
 import android.widget.EditText;
 
 
-/**
- * A simple {@link Fragment} subclass.
- */
 public class TextFragment extends Fragment {
 
     @Override

@@ -2,14 +2,13 @@
 <resources>
     <string-array name="res_list_animals">
         <item>Медоед</item>
-        <item>Альбатрос</item>
         <item>Броненосец</item>
         <item>Опоссум</item>
         <item>Акула-молот</item>
-        <item>Тихоокеанский альбатрос</item>
+        <item>Альбатрос</item>
         <item>Зебра</item>
         <item>Медведка</item>
         <item>Барабашка</item>
-        <item>Соседская собака рыжик</item>
+        <item>Рыжик</item>
     </string-array>
 </resources>
