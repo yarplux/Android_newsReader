@@ -4,7 +4,6 @@ import android.graphics.Canvas;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -79,21 +78,21 @@ public class RecyclerViewFragment extends Fragment {
                 mAdapter.notifyDataSetChanged();
             }
 
-//            @Override
-//            public void onEdit(final int position) {
-//                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-//                TextFragment updateFragment = new TextFragment();
-//                Bundle bundle = new Bundle();
-//                bundle.putInt("position", position);
-//                RealmModel updateRow = realm.where(RealmModel.class).equalTo("id", mAdapter.ItemID(position)).findFirst();
-//                bundle.putString("title", updateRow.getTitle());
-//                bundle.putString("content", updateRow.getContent());
-//                bundle.putString("link", updateRow.getLink());
-//                updateFragment.setArguments(bundle);
-//                transaction.replace(R.id.container, updateFragment);
-//                transaction.addToBackStack(null);
-//                transaction.commit();
-//            }
+            @Override
+            public void onEdit(final int position) {
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                TextFragment updateFragment = new TextFragment();
+                Bundle bundle = new Bundle();
+                bundle.putInt("position", position);
+                RealmModel updateRow = realm.where(RealmModel.class).equalTo("id", mAdapter.ItemID(position)).findFirst();
+                bundle.putString("title", updateRow.getTitle());
+                bundle.putString("content", updateRow.getContent());
+                bundle.putString("link", updateRow.getLink());
+                updateFragment.setArguments(bundle);
+                transaction.replace(R.id.container, updateFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+            }
         });
 
         ItemTouchHelper itemTouchhelper = new ItemTouchHelper(swipeController);
@@ -122,8 +121,8 @@ public class RecyclerViewFragment extends Fragment {
         mAdapter.notifyItemInserted(number);
     }
 
-//    public void updateItem(int position, String title, String content, String link ) {
-//        Boolean updated = new RealmController(this.getContext(), config).updateInfo(mAdapter.ItemID(position), title, content, link);
-//        mAdapter.notifyDataSetChanged();
-//    }
+    public void updateItem(int position, String title, String content, String link ) {
+        Boolean updated = new RealmController(this.getContext(), config).updateInfo(mAdapter.ItemID(position), title, content, link);
+        mAdapter.notifyDataSetChanged();
+    }
 }

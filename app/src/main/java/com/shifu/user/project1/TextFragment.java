@@ -41,21 +41,21 @@ public class TextFragment extends Fragment {
 
         final Button savebutton = (Button) v.findViewById(R.id.button_save);
 
-//        Bundle bundle = this.getArguments();
-//        if (bundle != null) {
-//            this.position = bundle.getInt("position");
-//        }
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+            this.position = bundle.getInt("position");
+        }
 
 
         final EditText title = (EditText) v.findViewById(R.id.add_title);
         final EditText content = (EditText) v.findViewById(R.id.add_content);
         final EditText link = (EditText) v.findViewById(R.id.add_link);
 
-//        if (position != null) {
-//            title.setText(bundle.getString("title"));
-//            content.setText(bundle.getString("content"));
-//            link.setText(bundle.getString("link"));
-//        }
+        if (position != null) {
+            title.setText(bundle.getString("title"));
+            content.setText(bundle.getString("content"));
+            link.setText(bundle.getString("link"));
+        }
 
         final FragmentManager fragmentManager = getFragmentManager();
 
@@ -69,9 +69,9 @@ public class TextFragment extends Fragment {
                     RecyclerViewFragment fragment_list = (RecyclerViewFragment) fragmentManager.findFragmentByTag("START");
                     if (position == null) {
                         fragment_list.addItem(title.getText().toString(), content.getText().toString(), link.getText().toString());
-                    } //else {
-//                        fragment_list.updateItem(position,title.getText().toString(), content.getText().toString(), link.getText().toString());
-//                    }
+                    } else {
+                        fragment_list.updateItem(position,title.getText().toString(), content.getText().toString(), link.getText().toString());
+                    }
                     fragmentManager.popBackStackImmediate();
                 }
                 else {
