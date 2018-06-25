@@ -33,7 +33,7 @@ import io.realm.RealmRecyclerViewAdapter;
 public class CustomAdapter extends RealmRecyclerViewAdapter<RealmModel, CustomAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        private  TextView textView;
+        private  TextView title, content, link;
         private Long id;
 
         public RelativeLayout viewBackground, viewForeground;
@@ -41,10 +41,12 @@ public class CustomAdapter extends RealmRecyclerViewAdapter<RealmModel, CustomAd
         public ViewHolder(View v) {
             super(v);
 
-            textView = (TextView) v.findViewById(R.id.content);
+            title = (TextView) v.findViewById(R.id.title);
+            content = (TextView) v.findViewById(R.id.content);
+            link = (TextView) v.findViewById(R.id.link);
+
             viewForeground = v.findViewById(R.id.view_foreground);
 
-            viewForeground.setClickable(true);
             viewForeground.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -63,16 +65,8 @@ public class CustomAdapter extends RealmRecyclerViewAdapter<RealmModel, CustomAd
 
         }
 
-        public TextView getTextView() {
-            return textView;
-        }
-
-        public void setId (Long id) {
-            this.id = id;
-        }
-        public Long getId () {
-            return this.id;
-        }
+        public void setId (Long id) { this.id = id; }
+        public Long getId () { return this.id; }
     }
 
     public CustomAdapter(OrderedRealmCollection<RealmModel> data) {
@@ -90,13 +84,13 @@ public class CustomAdapter extends RealmRecyclerViewAdapter<RealmModel, CustomAd
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-        // Get element from your dataset at this position and replace the contents of the view
-        // with that element
-        //viewHolder.getTextView().setText(tmap.get(Long.valueOf(position)));
         final RealmModel obj = getItem(position);
-        viewHolder.getTextView().setText(obj.getName());
+        viewHolder.title.setText(obj.getTitle());
+        viewHolder.content.setText(obj.getContent());
+        viewHolder.link.setText(obj.getLink());
         viewHolder.setId(obj.getID());
-        Log.d("ID placed:", Long.toString(viewHolder.getId()));
+
+        //Log.d("ID placed:", Long.toString(viewHolder.getId()));
     }
 
     public Long ItemID(int position) {

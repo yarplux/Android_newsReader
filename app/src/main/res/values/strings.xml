@@ -3,9 +3,12 @@
     <string name="greetings">Руденко Егор Дмитриевич запустил проект, какой он молодец! :))</string>
     <string name="back">Назад</string>
     <string name="delete">Удалить</string>
+    <string name="edit">Редактировать</string>
     <string name="list">Список</string>
     <string name="add">Добавить</string>
     <string name="profile">Профиль</string>
     <string name="save">Сохранить</string>
-    <string name="adding">Новый зверь:</string>
+    <string name="add_title">Новый герой:</string>
+    <string name="add_content">Описание:</string>
+    <string name="add_link">Ссылка:</string>
 </resources>

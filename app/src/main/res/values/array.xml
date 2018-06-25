@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="res_list_animals">
-        <item>Медоед</item>
-        <item>Броненосец</item>
-        <item>Опоссум</item>
-        <item>Акула-молот</item>
-        <item>Альбатрос</item>
-        <item>Зебра</item>
-        <item>Медведка</item>
-        <item>Барабашка</item>
-        <item>Рыжик</item>
+        <item>Геральт</item>
+        <item>Ламберт</item>
+        <item>Эскель</item>
+        <item>Весемир</item>
+        <item>Цири</item>
+        <item>Лето</item>
+        <item>Беренгар</item>
     </string-array>
 </resources>

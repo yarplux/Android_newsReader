@@ -8,4 +8,5 @@
     android:layout_marginTop="?attr/actionBarSize"
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
+    android:background="?android:attr/selectableItemBackground"
     app:layoutManager="android.support.v7.widget.LinearLayoutManager"/>

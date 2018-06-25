@@ -20,7 +20,8 @@ import static android.support.v7.widget.helper.ItemTouchHelper.RIGHT;
  */
 enum ButtonsState {
     GONE,
-    VISIBLE
+    LEFT_VISIBLE,
+    RIGHT_VISIBLE
 }
 
 public class SwipeController extends ItemTouchHelper.Callback {
@@ -77,7 +78,8 @@ public class SwipeController extends ItemTouchHelper.Callback {
 
         if (actionState == ACTION_STATE_SWIPE) {
             if (buttonShowedState != ButtonsState.GONE) {
-                if (buttonShowedState == ButtonsState.VISIBLE) dX = Math.min(dX, -buttonWidth);
+                if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) dX = Math.min(dX, -buttonWidth);
+//                if (buttonShowedState == ButtonsState.LEFT_VISIBLE) dX = Math.max(dX, buttonWidth);
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
             else {
@@ -104,7 +106,9 @@ public class SwipeController extends ItemTouchHelper.Callback {
             public boolean onTouch(View v, MotionEvent event) {
                 swipeBack = event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP;
                 if (swipeBack) {
-                    if (dX < -buttonWidth) buttonShowedState = ButtonsState.VISIBLE;
+                    if (dX < -buttonWidth) buttonShowedState = ButtonsState.RIGHT_VISIBLE;
+//                    else if (dX > buttonWidth) buttonShowedState = ButtonsState.LEFT_VISIBLE;
+
                     if (buttonShowedState != ButtonsState.GONE) {
                         setTouchDownListener(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                         setItemsClickable(recyclerView, false);
@@ -143,7 +147,7 @@ public class SwipeController extends ItemTouchHelper.Callback {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_UP) {
-                    SwipeController.super.onChildDraw(c, recyclerView, viewHolder, 0, dY, actionState, isCurrentlyActive);
+                    SwipeController.super.onChildDraw(c, recyclerView, viewHolder, 0F, dY, actionState, isCurrentlyActive);
                     recyclerView.setOnTouchListener(new View.OnTouchListener() {
                         @Override
                         public boolean onTouch(View v, MotionEvent event) {
@@ -154,9 +158,12 @@ public class SwipeController extends ItemTouchHelper.Callback {
                     swipeBack = false;
 
                     if (buttonsActions != null && buttonInstance != null && buttonInstance.contains(event.getX(), event.getY())) {
-                        if (buttonShowedState == ButtonsState.VISIBLE) {
+                        if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
                             buttonsActions.onDelete(viewHolder.getAdapterPosition());
                         }
+//                        else if (buttonShowedState == ButtonsState.LEFT_VISIBLE) {
+//                            buttonsActions.onEdit(viewHolder.getAdapterPosition());
+//                        }
                     }
                     buttonShowedState = ButtonsState.GONE;
                     currentItemViewHolder = null;
@@ -180,16 +187,24 @@ public class SwipeController extends ItemTouchHelper.Callback {
         View itemView = viewHolder.itemView;
         Paint p = new Paint();
 
-        RectF button = new RectF(itemView.getRight() - buttonWidthWithoutPadding, itemView.getTop(), itemView.getRight(), itemView.getBottom());
+//        RectF leftButton = new RectF(itemView.getLeft(), itemView.getTop(), itemView.getLeft() + buttonWidthWithoutPadding, itemView.getBottom());
+//        p.setColor(Color.BLUE);
+//        c.drawRoundRect(leftButton, corners, corners, p);
+//        drawText(context.getResources().getText(R.string.edit).toString(), c, leftButton, p);
+
+        RectF rightButton = new RectF(itemView.getRight() - buttonWidthWithoutPadding, itemView.getTop(), itemView.getRight(), itemView.getBottom());
         p.setColor(Color.RED);
-        c.drawRoundRect(button, corners, corners, p);
-        drawText(context.getResources().getText(R.string.delete).toString(), c, button, p);
+        c.drawRoundRect(rightButton, corners, corners, p);
+        drawText(context.getResources().getText(R.string.delete).toString(), c, rightButton, p);
 
         buttonInstance = null;
-        if (buttonShowedState == ButtonsState.VISIBLE) {
-            buttonInstance = button;
+        if (buttonShowedState == ButtonsState.RIGHT_VISIBLE) {
+            buttonInstance = rightButton;
         }
-    }
+//        else if (buttonShowedState == ButtonsState.LEFT_VISIBLE) {
+//            buttonInstance = leftButton;
+//        }
+}
 
     private void drawText(String text, Canvas c, RectF button, Paint p) {
         float textSize = 60;

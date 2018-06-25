@@ -4,16 +4,22 @@ import io.realm.RealmObject;
 
 public class RealmModel  extends RealmObject {
 
-    private Long ID;
+    private Long id;
+    private String title;
+    private String content;
+    private String link;
 
-    private String Name;
 
-    public Long getID() { return ID; }
+    public Long getID() { return id; }
+    public void setID(Long Number) { this.id = Number; }
 
-    public void setID(Long Number) { this.ID = Number; }
+    public String getTitle() { return title; }
+    public void setTitle(String data) { this.title = data; }
 
-    public String getName() { return Name; }
+    public String getContent() { return content; }
+    public void setContent(String data) { this.content = data; }
 
-    public void setName(String Name) { this.Name = Name; }
+    public String getLink() { return link; }
+    public void setLink(String data) { this.link = data; }
 
 }

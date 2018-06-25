@@ -10,10 +10,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="?attr/actionBarSize"
-        android:labelFor="@+id/text_add"
-        android:text="@string/adding"/>
+        android:labelFor="@+id/add_title"
+        android:text="@string/add_title"/>
     <EditText
-        android:id="@+id/text_add"
+        android:id="@+id/add_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text|textAutoCorrect" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:labelFor="@+id/add_content"
+        android:text="@string/add_content"/>
+    <EditText
+        android:id="@+id/add_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text|textAutoCorrect|textMultiLine" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:labelFor="@+id/add_link"
+        android:text="@string/add_link"/>
+    <EditText
+        android:id="@+id/add_link"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text|textAutoCorrect" />
