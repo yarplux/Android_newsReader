@@ -29,8 +29,6 @@ public class SwipeController extends ItemTouchHelper.Callback {
 
     private boolean swipeBack = false;
 
-    private CustomAdapter mAdapter;
-
     private ButtonsState buttonShowedState = ButtonsState.GONE;
 
     private RectF buttonInstance = null;

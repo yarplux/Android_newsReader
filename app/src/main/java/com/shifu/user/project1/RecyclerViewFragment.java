@@ -72,8 +72,6 @@ public class RecyclerViewFragment extends Fragment {
         swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
             @Override
             public void onDelete(final int position) {
-//                Log.d("Position to Delete: ", Integer.toString(position));
-//                Log.d("ID to Delete: ",Long.toString(mAdapter.ItemID(position)));
                 new RealmController(getContext(), config).removeItemById(mAdapter.ItemID(position));
                 mAdapter.notifyDataSetChanged();
             }
@@ -110,10 +108,6 @@ public class RecyclerViewFragment extends Fragment {
 
     public void addItem(String title, String content, String link ) {
         Long position = new RealmController(this.getContext(), config).addInfo(title, content, link);
-
-//        Log.d("DB", realm.where(RealmModel.class).findAll().toString());
-//        Log.d("Number DB:", Long.toString(realm.where(RealmModel.class).count()));
-//        Log.d("Position:",Long.toString(position));
 
         // DANGEROUS OPERATION, IF DB TOO MUCH!
         int number = (int)(long) realm.where(RealmModel.class).count();
