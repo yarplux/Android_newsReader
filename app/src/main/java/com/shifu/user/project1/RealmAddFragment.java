@@ -1,6 +1,5 @@
 package com.shifu.user.project1;
 
-
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,10 +12,14 @@ import android.widget.Button;
 import android.widget.EditText;
 
 
-public class TextFragment extends Fragment {
+public class RealmAddFragment extends Fragment {
 
     PassMainMenu activity;
     private Integer position;
+    Button savebutton;
+    EditText title;
+    EditText content;
+    EditText link;
 
     public interface PassMainMenu {
         Menu getMenu();
@@ -30,26 +33,26 @@ public class TextFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_text, container, false);
+
+        savebutton = (Button) v.findViewById(R.id.button_save);
+        title = (EditText) v.findViewById(R.id.add_title);
+        content = (EditText) v.findViewById(R.id.add_content);
+        link = (EditText) v.findViewById(R.id.add_link);
+
+
 
         // Временно убираем пункт добавить, чтобы избежать необходимости обратных переходов по цепочке
         // или редактирования стэка операций с фрагментами
         activity.getMenu().findItem(R.id.menu_add).setVisible(false);
 
-        final Button savebutton = (Button) v.findViewById(R.id.button_save);
-
         Bundle bundle = this.getArguments();
         if (bundle != null) {
             this.position = bundle.getInt("position");
         }
-
-
-        final EditText title = (EditText) v.findViewById(R.id.add_title);
-        final EditText content = (EditText) v.findViewById(R.id.add_content);
-        final EditText link = (EditText) v.findViewById(R.id.add_link);
 
         if (position != null) {
             title.setText(bundle.getString("title"));
@@ -64,9 +67,12 @@ public class TextFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
+
+                getActivity().findViewById(R.id.add_label).requestFocus();
+
                 if (title.getText().length() > 0) {
 
-                    RecyclerViewFragment fragment_list = (RecyclerViewFragment) fragmentManager.findFragmentByTag("START");
+                    RealmRVFragment fragment_list = (RealmRVFragment) fragmentManager.findFragmentByTag("START");
                     if (position == null) {
                         fragment_list.addItem(title.getText().toString(), content.getText().toString(), link.getText().toString());
                     } else {
@@ -83,17 +89,10 @@ public class TextFragment extends Fragment {
         return v;
     }
 
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//        ((AppCompatActivity)getActivity()).getSupportActionBar().hide();
-//    }
 
     @Override
     public void onStop() {
         super.onStop();
         activity.getMenu().findItem(R.id.menu_add).setVisible(true);
-
-//        ((AppCompatActivity)getActivity()).getSupportActionBar().show();
     }
 }

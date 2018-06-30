@@ -30,11 +30,12 @@ import android.widget.TextView;
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmRecyclerViewAdapter;
 
-public class CustomAdapter extends RealmRecyclerViewAdapter<RealmModel, CustomAdapter.ViewHolder> {
+public class RealmCustomAdapter extends RealmRecyclerViewAdapter<RealmModel, RealmCustomAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private  TextView title, content, link;
-        private Long id;
+
+        public RealmModel data;
 
         public RelativeLayout viewBackground, viewForeground;
 
@@ -44,6 +45,7 @@ public class CustomAdapter extends RealmRecyclerViewAdapter<RealmModel, CustomAd
             title = (TextView) v.findViewById(R.id.title);
             content = (TextView) v.findViewById(R.id.content);
             link = (TextView) v.findViewById(R.id.link);
+
 
             viewForeground = v.findViewById(R.id.view_foreground);
 
@@ -60,16 +62,11 @@ public class CustomAdapter extends RealmRecyclerViewAdapter<RealmModel, CustomAd
                     }
 
             });
-
             viewBackground = v.findViewById(R.id.view_background);
-
         }
-
-        public void setId (Long id) { this.id = id; }
-        public Long getId () { return this.id; }
     }
 
-    public CustomAdapter(OrderedRealmCollection<RealmModel> data) {
+    public RealmCustomAdapter(OrderedRealmCollection<RealmModel> data) {
         super(data, true);
         setHasStableIds(true);
     }
@@ -83,18 +80,22 @@ public class CustomAdapter extends RealmRecyclerViewAdapter<RealmModel, CustomAd
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, final int position) {
+    public void onBindViewHolder(ViewHolder viewHolder, int position) {
         final RealmModel obj = getItem(position);
+        viewHolder.data = obj;
         viewHolder.title.setText(obj.getTitle());
         viewHolder.content.setText(obj.getContent());
         viewHolder.link.setText(obj.getLink());
-        viewHolder.setId(obj.getID());
-
-        //Log.d("ID placed:", Long.toString(viewHolder.getId()));
+        //Log.d("onBind:", Long.toString(obj.getID())+" on position "+ Integer.toString(position));
     }
 
-    public Long ItemID(int position) {
-        return getItem(position).getID();
+    public void setData(OrderedRealmCollection<RealmModel> data) {
+        updateData(data);
+    }
+
+    @Override
+    public long getItemId(int index) {
+        return getItem(index).getID();
     }
 
 }

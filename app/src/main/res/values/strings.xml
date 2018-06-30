@@ -17,6 +17,6 @@
 
     <string name="fb_login">Facebook</string>
     <string name="login_welcome">You were logged in %1$s as %2$s %3$s. Welcome!</string>
-
+    <string name="country_entry">Регион: %1$s (%2$s) \nЯзык: %3$s \nВалюта: %4$s</string>
 
 </resources>

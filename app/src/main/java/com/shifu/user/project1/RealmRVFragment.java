@@ -12,17 +12,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 
 // NOTE: Возможно ошибка с id базы, когда количество добавленных id превысит макс. int значение! (счи
-
-public class RecyclerViewFragment extends Fragment {
+public class RealmRVFragment extends Fragment {
 
     private Realm realm;
     private RealmConfiguration config;
     protected RecyclerView mRecyclerView;
-    protected CustomAdapter mAdapter;
+    protected RealmCustomAdapter mAdapter;
     protected RecyclerView.LayoutManager mLayoutManager;
     SwipeController swipeController = null;
 
@@ -31,26 +40,44 @@ public class RecyclerViewFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Realm.init(getContext());
 
-//      Для возможности миграции. На будущее. Пока предыдущая схема удаляется
-//        RealmConfiguration config = new RealmConfiguration().Builder()
-//                .chemaVersion(2) // Текущая версия схемы (задание 4, добавлены 2 поля)
-//                .migration(new MyMigration())
-//                .build();
-
         config = new RealmConfiguration.Builder()
                 .deleteRealmIfMigrationNeeded()
                 .build();
 
         realm = Realm.getInstance(config);
 
-        if (realm.where(RealmModel.class).count() == 0) {
-            for (String title : getResources().getStringArray(R.array.res_list_animals)) {
-                new RealmController(this.getContext(), config).addInfo(title, null, null);
-            }
-        }
+        // Delete all base before update
+        new RealmController(getContext(), config).Clear();
 
-//        Log.d("Loaded base:", realm.where(RealmModel.class).findAll().toString());
-//        Log.d("Max ID", realm.where(RealmModel.class).max("ID").toString());
+        mAdapter =  new RealmCustomAdapter(realm.where(RealmModel.class).findAll().sort("id"));
+
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://countryapi.gear.host")
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        CountriesAPI countriesAPI = retrofit.create(CountriesAPI.class);
+        countriesAPI.loadRegion("Asia").enqueue(new Callback<Countries>() {
+            @Override
+            public void onResponse(Call<Countries> call, Response<Countries> response) {
+                if (response.isSuccessful()) {
+                    //Log.d("Get countries: ", Integer.toString(response.body().getTotalCount()));
+                    new RealmController(getContext(), config).addInfo(response.body());
+                    mAdapter.notifyDataSetChanged();
+                } else {
+                    Log.e("REST error", response.errorBody().toString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Countries> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
     }
 
     @Override
@@ -60,29 +87,25 @@ public class RecyclerViewFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_item_list, container, false);
 
         mRecyclerView = rootView.findViewById(R.id.recyclerView);
-
         mLayoutManager = new LinearLayoutManager(getActivity());
-
         mRecyclerView.setLayoutManager(mLayoutManager);
-
-        mAdapter = new CustomAdapter(realm.where(RealmModel.class).findAll().sort("id"));
-
         mRecyclerView.setAdapter(mAdapter);
 
         swipeController = new SwipeController(getActivity(), new SwipeControllerActions() {
             @Override
             public void onDelete(final int position) {
-                new RealmController(getContext(), config).removeItemById(mAdapter.ItemID(position));
+                //Log.d("Deleted:", Long.toString(mAdapter.getItem(position).getID()));
+                new RealmController(getContext(), config).removeItemById(mAdapter.getItem(position).getID());
                 mAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onEdit(final int position) {
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                TextFragment updateFragment = new TextFragment();
+                RealmAddFragment updateFragment = new RealmAddFragment();
                 Bundle bundle = new Bundle();
                 bundle.putInt("position", position);
-                RealmModel updateRow = realm.where(RealmModel.class).equalTo("id", mAdapter.ItemID(position)).findFirst();
+                RealmModel updateRow = realm.where(RealmModel.class).equalTo("id", mAdapter.getItem(position).getID()).findFirst();
                 bundle.putString("title", updateRow.getTitle());
                 bundle.putString("content", updateRow.getContent());
                 bundle.putString("link", updateRow.getLink());
@@ -102,21 +125,20 @@ public class RecyclerViewFragment extends Fragment {
                 swipeController.onDraw(c);
             }
         });
-
         return rootView;
     }
 
     public void addItem(String title, String content, String link ) {
-        Long position = new RealmController(this.getContext(), config).addInfo(title, content, link);
+        new RealmController(this.getContext(), config).addInfo(title, content, link);
 
         // DANGEROUS OPERATION, IF DB TOO MUCH!
         int number = (int)(long) realm.where(RealmModel.class).count();
-        Log.d("Number tmap:", Long.toString(realm.where(RealmModel.class).count()));
         mAdapter.notifyItemInserted(number);
     }
 
     public void updateItem(int position, String title, String content, String link ) {
-        Boolean updated = new RealmController(this.getContext(), config).updateInfo(mAdapter.ItemID(position), title, content, link);
+        new RealmController(this.getContext(), config).updateInfo(mAdapter.getItem(position).getID(), title, content, link);
         mAdapter.notifyDataSetChanged();
     }
+
 }

@@ -9,9 +9,10 @@ import android.view.MenuItem;
 
 
 public class MainActivity extends AppCompatActivity
-        implements TextFragment.PassMainMenu {
+        implements RealmAddFragment.PassMainMenu {
 
     private Menu main_menu;
+    private RealmRVFragment realmRVFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,9 +23,10 @@ public class MainActivity extends AppCompatActivity
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
+        realmRVFragment = new RealmRVFragment();
         getSupportFragmentManager()
                 .beginTransaction()
-                .add(R.id.container, new RecyclerViewFragment(), "START")
+                .add(R.id.container, realmRVFragment, "START")
                 .commit();
 
     }
@@ -49,7 +51,7 @@ public class MainActivity extends AppCompatActivity
                 this.getSupportFragmentManager().popBackStackImmediate("START", 0);
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .replace(R.id.container, new RecyclerViewFragment())
+                        .replace(R.id.container, realmRVFragment)
                         .commit();
                 return true;
 
@@ -67,7 +69,7 @@ public class MainActivity extends AppCompatActivity
     private void addItem() {
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.container, new TextFragment())
+                .replace(R.id.container, new RealmAddFragment())
                 .addToBackStack(null)
                 .commit();
     }
@@ -76,7 +78,5 @@ public class MainActivity extends AppCompatActivity
     public Menu getMenu() {
         return main_menu;
     }
-
-
 
 }

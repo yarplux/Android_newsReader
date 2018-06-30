@@ -10,9 +10,11 @@ import io.realm.RealmResults;
 public class RealmController {
 
     private Realm realm;
+    private Context context;
 
     public RealmController(Context context, RealmConfiguration config) {
         Realm.init(context);
+        this.context = context;
         realm.setDefaultConfiguration(config);
         realm = Realm.getInstance(config);
     }
@@ -22,78 +24,87 @@ public class RealmController {
         realm.where(RealmModel.class).findAll().deleteAllFromRealm();
         realm.commitTransaction();
     }
-    public Long addInfo(String title, String content, String link) {
 
-        if (title == null || title.equals("")) return -1L;
-
+    public void addInfo(final Countries data) {
         realm.beginTransaction();
-        RealmModel realmObject = realm.createObject(RealmModel.class);
-        Long id = getNextKey();
-        realmObject.setID(id);
-        realmObject.setTitle(title);
-
-        if (content != null) {
-            realmObject.setContent(content);
-        } else {
-            realmObject.setContent("");
+        for (com.shifu.user.project1.CountriesResponse obj : data.getResponse()) {
+            RealmModel item = RealmModel.create(realm);
+                    String country_content = context.getResources().getString(R.string.country_entry,
+                            obj.getRegion(),
+                            obj.getSubRegion(),
+                            obj.getNativeLanguage(),
+                            obj.getCurrencyName());
+                    item.setTitle(obj.getName());
+                    item.setContent(country_content);
         }
-        if (link != null) {
-            realmObject.setLink(link);
-        } else {
-            realmObject.setContent("");
-        }
-
         realm.commitTransaction();
-        return id;
+
+// Test of writing in realms
+//        for (Long i=0L; i<data.getResponse().size(); i++) {
+//            RealmModel obj = realm.where(RealmModel.class).equalTo("id", i).findFirst();
+//            String id = Long.toString(obj.getID());
+//            String name = obj.getTitle();
+//            Log.d("In realm:", id+' '+name);
+//        }
+//        realm.executeTransactionAsync(new Realm.Transaction() {
+//            @Override
+//            public void execute(Realm realm) {
+//                for (int i=0; i< data.getResponse().size(); i++) RealmModel.create(realm);
+//                Long i=0L;
+//                for (com.shifu.user.project1.CountriesResponse obj : data.getResponse()) {
+//                    String country_content = context.getResources().getString(R.string.country_entry,
+//                            obj.getRegion(),
+//                            obj.getSubRegion(),
+//                            obj.getNativeLanguage(),
+//                            obj.getCurrencyName());
+//                    updateInfo(i++, obj.getName(), country_content, null);
+//                }
+//            }
+//        });
     }
+
+    public void addInfo(final String title, final String content, final String link) {
+        if (title == null || title.equals("")) return;
+        realm.beginTransaction();
+        RealmModel obj = RealmModel.create(realm);
+        obj.setTitle(title);
+        obj.setContent(content);
+        obj.setLink(link);
+        realm.commitTransaction();
+    }
+
+//        realm.executeTransactionAsync(new Realm.Transaction() {
+//            @Override
+//            public void execute(Realm realm) {
+//        });
+//    }
 
     public RealmResults<RealmModel> getInfo() {
         return realm.where(RealmModel.class).findAll();
     }
 
-    public boolean updateInfo(Long id, String title, String content, String link) {
-
-        if (title == null || title.equals("")) return false;
-
+    public void updateInfo(final Long id, final String title, final String content, final String link) {
+        if (title == null || title.equals("")) return;
         realm.beginTransaction();
-        RealmModel realmObject = realm.where(RealmModel.class).equalTo("id", id).findFirst();
-        realmObject.setTitle(title);
-
-        if (content != null) {
-            realmObject.setContent(content);
-        } else {
-            realmObject.setContent("");
-        }
-        if (link != null) {
-            realmObject.setLink(link);
-        } else {
-            realmObject.setContent("");
-        }
-
+        RealmModel obj = realm.where(RealmModel.class).equalTo("id", id).findFirst();
+        obj.setTitle(title);
+        obj.setContent(content);
+        obj.setLink(link);
         realm.commitTransaction();
-
-        return true;
+//        realm.executeTransactionAsync(new Realm.Transaction() {
+//            @Override
+//            public void execute(Realm realm) {
+//            }
+//        });
     }
 
-    public void removeItemById(long id) {
-
-        long size = getNextKey();
-        realm.beginTransaction();
-        RealmResults<RealmModel> results = realm.where(RealmModel.class).equalTo("id", id).findAll();
-        results.deleteAllFromRealm();
-        realm.commitTransaction();
-//        Log.d("To Delete:", results.toString());
-//        Log.d("DB AfterDelete:", realm.where(RealmModel.class).findAll().toString());
-//        Log.d("DB Size:", Long.toString(realm.where(RealmModel.class).count()));
-    }
-
-    private Long getNextKey() {
-        if (realm.where(RealmModel.class).count() > 1) {
-            return realm.where(RealmModel.class).max("id").longValue()+1;
-        }
-        else {
-            return 0L;
-        }
+    public void removeItemById(final long id) {
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                RealmModel.delete(realm, id);
+            }
+        });
     }
 
 }
