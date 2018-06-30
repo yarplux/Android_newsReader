@@ -1,5 +1,6 @@
 package com.shifu.user.project1;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -28,6 +29,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 // NOTE: Возможно ошибка с id базы, когда количество добавленных id превысит макс. int значение! (счи
 public class RealmRVFragment extends Fragment {
 
+    private MainActivity activity;
     private Realm realm;
     private RealmConfiguration config;
     protected RecyclerView mRecyclerView;
@@ -36,48 +38,18 @@ public class RealmRVFragment extends Fragment {
     SwipeController swipeController = null;
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activity = (MainActivity)getActivity();
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Realm.init(getContext());
 
-        config = new RealmConfiguration.Builder()
-                .deleteRealmIfMigrationNeeded()
-                .build();
-
-        realm = Realm.getInstance(config);
-
-        // Delete all base before update
-        new RealmController(getContext(), config).Clear();
-
-        mAdapter =  new RealmCustomAdapter(realm.where(RealmModel.class).findAll().sort("id"));
-
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://countryapi.gear.host")
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
-
-        CountriesAPI countriesAPI = retrofit.create(CountriesAPI.class);
-        countriesAPI.loadRegion("Asia").enqueue(new Callback<Countries>() {
-            @Override
-            public void onResponse(Call<Countries> call, Response<Countries> response) {
-                if (response.isSuccessful()) {
-                    //Log.d("Get countries: ", Integer.toString(response.body().getTotalCount()));
-                    new RealmController(getContext(), config).addInfo(response.body());
-                    mAdapter.notifyDataSetChanged();
-                } else {
-                    Log.e("REST error", response.errorBody().toString());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Countries> call, Throwable t) {
-                t.printStackTrace();
-            }
-        });
+        realm = activity.getRealmDB();
+        config = activity.getConfig();
+        mAdapter = activity.getRealmCustomAdapter();
     }
 
     @Override
@@ -85,6 +57,7 @@ public class RealmRVFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_item_list, container, false);
+
 
         mRecyclerView = rootView.findViewById(R.id.recyclerView);
         mLayoutManager = new LinearLayoutManager(getActivity());

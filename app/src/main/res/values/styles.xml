@@ -6,7 +6,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="windowActionBar">false</item>
+        <item name="windowActionBar">true</item>
         <item name="windowNoTitle">true</item>
     </style>
 
@@ -15,7 +15,7 @@
 
     <!-- Кастомная AppTheme.Launcher. Устанавливает фон -->
     <style name="AppTheme.Launcher">
-        <item name="android:windowBackground">@drawable/unicorn2_screen</item>
+        <item name="android:windowBackground">@drawable/splash_screen</item>
         <!-- для Android 5+ можно поменять цвет colorPrimaryDark, чтобы соответствовать цвету windowBackground -->
         <!-- <item name="colorPrimaryDark">@android:color/white</item> -->
     </style>
