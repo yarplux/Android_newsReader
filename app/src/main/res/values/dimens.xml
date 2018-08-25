@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="text_margin">16dp</dimen>
-    <dimen name="padd_10">10dp</dimen>
-    <dimen name="ic_delete">30dp</dimen>
-    <dimen name="thumbnail">90dp</dimen>
+    <dimen name="def_margin">16dp</dimen>
+
+    <dimen name="small">8dp</dimen>
+
 </resources>

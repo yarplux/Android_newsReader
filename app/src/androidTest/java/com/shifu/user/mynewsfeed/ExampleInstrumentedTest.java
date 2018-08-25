@@ -1,4 +1,4 @@
-package com.shifu.user.project1;
+package com.shifu.user.mynewsfeed;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

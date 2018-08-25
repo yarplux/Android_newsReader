@@ -9,7 +9,7 @@
     <!-- Лого приложения -->
     <item>
         <bitmap
-            android:src="@drawable/unicorn2_screen"
+            android:src="@drawable/splash"
             android:gravity="center"/>
     </item>
 

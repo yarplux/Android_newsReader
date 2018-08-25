@@ -1,4 +1,4 @@
-package com.shifu.user.project1;
+package com.shifu.user.mynewsfeed;
 
 import org.junit.Test;
 
