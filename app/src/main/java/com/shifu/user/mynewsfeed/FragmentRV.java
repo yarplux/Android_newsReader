@@ -135,6 +135,7 @@ public class FragmentRV extends Fragment {
                 .fromCallable(() -> {
                     if (fromBack) Realm.init(context);
                     Realm realm = Realm.getDefaultInstance();
+                    realm.refresh();
                     State item = realm.where(State.class).findFirst();
                     if (item != null && item.getCategory() != null) {
                         options.put("category", item.getCategory());
