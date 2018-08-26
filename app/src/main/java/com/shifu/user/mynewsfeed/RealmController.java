@@ -2,18 +2,10 @@ package com.shifu.user.mynewsfeed;
 
 import android.content.Context;
 
-import com.shifu.user.mynewsfeed.json.JsonArticle;
 import com.shifu.user.mynewsfeed.realm.Article;
-import com.shifu.user.mynewsfeed.realm.RealmSource;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.List;
+import com.shifu.user.mynewsfeed.realm.State;
 
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
@@ -26,58 +18,80 @@ public class RealmController {
         return instance;
     }
 
+
     RealmController(Context context) {
         if (instance == null) {
             Realm.init(context);
-            RealmConfiguration config = new RealmConfiguration.Builder()
-                    .deleteRealmIfMigrationNeeded()
-                    .build();
-
-            Realm.setDefaultConfiguration(config);
             realm = Realm.getDefaultInstance();
             instance = this;
         }
     }
 
+
     /*
-     * Create data funations
+     * Create data functions
      */
 
-    public void loadSources(final JSONArray sources) {
-        realm.executeTransaction(trRealm -> {
-            try {
-                for (int i = 0; i < sources.length(); i++) {
-                    JSONObject obj = sources.getJSONObject(i);
-                    RealmSource objIn = trRealm.where(RealmSource.class).equalTo(RealmSource.getNetIdField(), obj.getString(RealmSource.getNetIdField())).findFirst();
-                    if (objIn == null) {
-                        trRealm.copyToRealm(new RealmSource(obj));
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public void loadArticles(final List<JsonArticle> articles) {
-        realm.executeTransaction(trRealm -> {
-            Article.setLastID(trRealm.where(Article.class).count());
-            for (JsonArticle obj : articles) {
-                Article objIn = trRealm.where(Article.class).equalTo(Article.getNetIdField(), obj.getUrl()).findFirst();
-                if (objIn == null && obj.getPublishedAt() != null) {
-                    trRealm.copyToRealm(new Article(obj));
-                }
-            }
-        });
+    public void stateInit(){
+        if (realm.where(State.class).count() == 0) {
+            realm.executeTransaction(trRealm -> {
+                State state = new State();
+                trRealm.copyToRealm(state);
+            });
+        }
     }
 
     /*
      * Read data functions
      */
 
-    public RealmResults<Article> getArticles() {
-        return realm.where(Article.class).findAll().sort("publishedAt", Sort.DESCENDING);
+    public Realm getRealmFromLooperThread(){
+        realm.setAutoRefresh(true);
+        return realm;
     }
+
+    public RealmResults<Article> getArticles() {
+        State state = realm.where(State.class).findFirst();
+        if (state == null) {
+            return realm.where(Article.class).sort("publishedAt", Sort.DESCENDING).findAll();
+        } else {
+            return realm.where(Article.class).equalTo("category", state.getCategory()).sort("publishedAt", Sort.DESCENDING).findAll();
+        }
+    }
+
+    public String getCategory() {
+        State out = realm.where(State.class).findFirst();
+        return (out == null)?null:out.getCategory();
+    }
+
+    public Boolean getAutoupdate() {
+        State out = realm.where(State.class).findFirst();
+        if (out == null || out.getAutoupdate() == null) return false;
+        return out.getAutoupdate();
+    }
+
+    /*
+     * Update data functions
+     */
+
+    public void refresh(){
+        realm.refresh();
+    }
+
+    public void setCategory(String category) {
+        realm.executeTransaction(trRealm -> {
+                State state = trRealm.where(State.class).findFirst();
+                if (state != null) trRealm.where(State.class).findFirst().setCategory(category);
+        });
+    }
+
+    public void setAutoupdate(Boolean autoupdate) {
+        realm.executeTransaction(trRealm -> {
+            State state = trRealm.where(State.class).findFirst();
+            if (state != null) trRealm.where(State.class).findFirst().setAutoupdate(autoupdate);
+        });
+    }
+
 
 
     /*
@@ -85,7 +99,11 @@ public class RealmController {
      */
 
     public void clear() {
-        realm.executeTransaction(trRealm -> realm.deleteAll());
+        realm.executeTransaction(trRealm -> realm.where(Article.class).findAll().deleteAllFromRealm());
+    }
+
+    public void close() {
+        if (realm != null) realm.close();
     }
 
 }

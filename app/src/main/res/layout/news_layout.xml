@@ -5,16 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_marginTop="?attr/actionBarSize"
+    android:background="@color/white"
     tools:context=".FragmentNews">
-
-    <ImageButton
-        android:id="@+id/backButton"
-        android:layout_width="60sp"
-        android:layout_height="40sp"
-        android:contentDescription="@string/back"
-        android:src="@drawable/icons8_close_24"
-        android:background="@color/transparent"/>
 
     <ProgressBar
         android:id="@+id/progress"

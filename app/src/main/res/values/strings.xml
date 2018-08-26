@@ -3,20 +3,16 @@
 
     <string name="fake">-</string>
 
-    <string name="back">Назад</string>
-    <string name="delete">Удалить</string>
-    <string name="edit">Редактировать</string>
-    <string name="list">Список</string>
-    <string name="add">Добавить</string>
-    <string name="profile">Профиль</string>
-    <string name="save">Сохранить</string>
-
-    <string name="add_title">Новый герой:</string>
-    <string name="add_content">Описание:</string>
-    <string name="add_link">Ссылка:</string>
+    <string name="clear">Очистить кэш новостей</string>
+    <string name="update">Автообноление</string>
 
     <string name="source">Источник: %s</string>
     <string name="published">Опубликовано: %s</string>
+
+    <string name="category">Выбрано: %s</string>
+    <string name="button_choose">Выбрать</string>
+    <string name="button_cansel">Сбросить фильтр</string>
+    <string name="categories">Категории:</string>
 
 
 </resources>

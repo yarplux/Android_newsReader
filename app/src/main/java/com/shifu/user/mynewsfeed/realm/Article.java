@@ -14,9 +14,6 @@ import io.realm.RealmObject;
 
 public class Article extends RealmObject {
 
-    final private static String FIELD_PK = "uid";
-    final private static String FIELD_NET_ID = "url";
-
     private final static DateFormat DATE_FORMAT_OUT = new SimpleDateFormat("yyyy-mm-dd'T'HH:mm:ss", Locale.US);
 
     private static AtomicLong lastID = new AtomicLong();
@@ -25,11 +22,16 @@ public class Article extends RealmObject {
         lastID.set((id==0)?1:id);
     }
 
+    public static AtomicLong getLastID() {
+        return lastID;
+    }
+
     private static Long increment() {
         return lastID.getAndIncrement();
     }
 
     private Long uid;
+    private String category;
 
     private String name;
     private String author;
@@ -41,7 +43,7 @@ public class Article extends RealmObject {
 
     public Article () {}
 
-    public Article (JsonArticle article) {
+    public Article (JsonArticle article, String category) {
 
         uid = increment();
         name = article.getSource().getName();
@@ -50,6 +52,8 @@ public class Article extends RealmObject {
         description = article.getDescription();
         url = article.getUrl();
         urlToImage = article.getUrlToImage();
+
+        this.category = category;
         try {
             publishedAt = DATE_FORMAT_OUT.parse(article.getPublishedAt().substring(0,20));
         } catch (ParseException e) {
@@ -67,6 +71,10 @@ public class Article extends RealmObject {
 
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getUrl() {
@@ -94,24 +102,19 @@ public class Article extends RealmObject {
                 .toString();
     }
 
-    public static String getPkField() {
-        return FIELD_PK;
-    }
-
-    public static String getNetIdField() {
-        return FIELD_NET_ID;
-    }
-
     public Long getUid() {
         return uid;
-    }
-
-    public void setUid(Long uid) {
-        this.uid = uid;
     }
 
     public String getName() {
         return name;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
 }

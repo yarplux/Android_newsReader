@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;
@@ -62,9 +63,6 @@ public class FragmentNews extends Fragment implements OnBackPressed {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.news_layout, container, false);
 
-        ImageButton button = rootView.findViewById(R.id.backButton);
-        button.setOnClickListener(view -> getFragmentManager().popBackStackImmediate());
-
         mProgressView = rootView.findViewById(R.id.progress);
 
         mWebView = rootView.findViewById(R.id.web_view);
@@ -96,12 +94,19 @@ public class FragmentNews extends Fragment implements OnBackPressed {
         super.onPause();
         mProgressView.setVisibility(View.GONE);
         isLoaded = false;
+        ActivityMain activity = ((ActivityMain) getActivity());
+        ImageButton ib = activity.findViewById(R.id.menu);
+        ib.setImageDrawable(activity.stylish(R.drawable.icons8_menu_24));
+
     }
 
     @Override
     public void onResume(){
         super.onResume();
         isLoaded = true;
+        ActivityMain activity = ((ActivityMain) getActivity());
+        ImageButton ib = activity.findViewById(R.id.menu);
+        ib.setImageDrawable(activity.stylish(R.drawable.icons8_close_24));
     }
 
     private void showProgress(final boolean show) {

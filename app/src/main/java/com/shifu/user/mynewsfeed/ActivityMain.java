@@ -1,160 +1,196 @@
 package com.shifu.user.mynewsfeed;
 
-import android.Manifest;
+import android.app.AlarmManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.shifu.user.mynewsfeed.json.JsonArticles;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-
-import static android.view.Window.FEATURE_NO_TITLE;
-
-
 public class ActivityMain extends AppCompatActivity {
 
-    private Menu main_menu;
-    private FragmentRV fragmentRV;
+    public static Boolean exist;
+
+    private DrawerLayout mDrawer;
+    private NavigationView nvDrawer;
+    private SwitchCompat autoupdate;
+
+    AlarmManager am;
+
     private RealmRVAdapter ra;
     private RealmController rc;
+    private Boolean isExit = false;
+
+    DataResponseBroadcastReceiver broadcastReceiver;
+
+    public static Map<String, String> categories = new HashMap <>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
-        requestWindowFeature(FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        
-        setContentView(R.layout.splash_layout);
+
+        setContentView(R.layout.main);
+
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.cancelAll();
+
 
         rc = new RealmController(this);
+        rc.stateInit();
 
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
+        ra =  new RealmRVAdapter(rc.getArticles(), getResources());
 
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(NewsAPI.BASE_URL)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                //.addConverterFactory(ScalarsConverterFactory.create())
-                .build();
+        mDrawer = findViewById(R.id.drawer_layout);
+        nvDrawer = findViewById(R.id.nvView);
 
-        NewsAPI newsAPI = retrofit.create(NewsAPI.class);
+        for (String str : getResources().getStringArray(R.array.categories)) {
+            categories.put(str.substring(0, str.indexOf('|')), str.substring(str.indexOf('|')+1));
+        }
 
-        Map<String, String> options = new HashMap <>();
+        View hView = nvDrawer.getHeaderView(0);
+        TextView category = hView.findViewById(R.id.category);
+        String text = rc.getCategory();
+        if (text == null) {
+            text = "Новости без категории";
+        } else {
+            text = categories.get(text);
+        }
+        category.setText(getResources().getString(R.string.category, text));
 
-        options.put("language", "ru");
+        LinearLayout mView = (LinearLayout) nvDrawer.getMenu().findItem(R.id.update).getActionView();
 
-        newsAPI.loadNews(options, getResources().getString(R.string.api_key)).enqueue(new Callback<JsonArticles>() {
-            @Override
-            public void onResponse(@NonNull Call<JsonArticles> call, @NonNull Response<JsonArticles> response) {
-                if (response.isSuccessful()
-                        && response.body() != null
-                        && response.body().getStatus() != null
-                        && response.body().getStatus().equals("ok")
-                        && response.body().getArticles() != null) {
+        autoupdate = mView.findViewById(R.id.drawer_switch);
+        autoupdate.setChecked(rc.getAutoupdate());
+        if (rc.getAutoupdate()) {
+            broadcastReceiver= new DataResponseBroadcastReceiver();
+            IntentFilter intentFilter= new IntentFilter();
+            intentFilter.addAction(DataService.ACTION);
+            registerReceiver(broadcastReceiver,intentFilter);
 
-                    setContentView(R.layout.main_layout);
+            scheduleAlarm();
+        }
 
-                    Toolbar myToolbar = findViewById(R.id.my_toolbar);
-                    setSupportActionBar(myToolbar);
+        autoupdate.setOnCheckedChangeListener((compoundButton, isChecked) -> {
+            rc.setAutoupdate(isChecked);
+            if (isChecked) {
+                broadcastReceiver= new DataResponseBroadcastReceiver();
+                IntentFilter intentFilter= new IntentFilter();
+                intentFilter.addAction(DataService.ACTION);
+                registerReceiver(broadcastReceiver,intentFilter);
 
-                    rc.loadArticles(response.body().getArticles());
-
-                    verifyStoragePermissionsAndRequest();
-
-                } else {
-                    Log.e("REST error", response.errorBody().toString());
+                scheduleAlarm();
+            } else {
+                try {
+                    if (am != null) am.cancel(scheduleAlarm());
+                    Toast.makeText(this, "Автообновление новостей отключено", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Log.e("Main", "AlarmManager update was not canceled. " + e.toString());
                 }
             }
-
-            @Override
-            public void onFailure(@NonNull Call<JsonArticles> call, @NonNull Throwable t) {
-                t.printStackTrace();
-            }
         });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        this.main_menu = menu;
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-
-            case R.id.menu_list:
-                this.getSupportFragmentManager().popBackStackImmediate("START", 0);
-                getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.container, fragmentRV)
-                        .commit();
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
 
 
-    public void verifyStoragePermissionsAndRequest() {
-        String[] permissions = { Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE };
-        int permission = ActivityCompat.checkSelfPermission(this, permissions[0]);
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, permissions, 0);
-        } else {
-            loadRV();
-        }
-    }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        if (requestCode ==0 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            loadRV();
-        }
-    }
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-    private void loadRV(){
-        ra =  new RealmRVAdapter(rc.getArticles(), getResources());
-        fragmentRV = new FragmentRV();
+        ImageButton menu = findViewById(R.id.menu);
+        menu.setImageDrawable(stylish(R.drawable.icons8_menu_24));
+        menu.setOnClickListener(view -> {
+            for(Fragment f : getSupportFragmentManager().getFragments()) {
+                if (f != null && f instanceof FragmentNews) {
+                    ((FragmentNews) f).onBackPressed();
+                    return;
+                }
+            }
+            mDrawer.openDrawer(nvDrawer);
+        });
+
+        nvDrawer.setNavigationItemSelectedListener(menuItem -> {
+            switch (menuItem.getItemId()) {
+                case R.id.clear:
+                    rc.clear();
+                    break;
+            }
+            return true;
+
+        });
+
+        ImageButton filter = findViewById(R.id.filter);
+        filter.setImageDrawable(stylish(R.drawable.icons8_filter_24));
+
+        FragmentRV fragmentRV = new FragmentRV();
         getSupportFragmentManager()
                 .beginTransaction()
                 .add(R.id.container, fragmentRV, "START")
                 .commit();
 
+
+
+    }
+
+    private PendingIntent scheduleAlarm() {
+        long startTime=System.currentTimeMillis();
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                getApplicationContext(),
+                0,
+                new Intent(getApplicationContext(), DataBroadcastReceiver.class)
+                        .putExtra("time", 3)
+                        .putExtra("task", "Выполнить!"),
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        am =(AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP,startTime,AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
+
+        return pendingIntent;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        if (requestCode ==0 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            finishLoading();
+        }
+    }
+
+    public void finishLoading() {
+        ra.updateData();
+        findViewById(R.id.imgLogo).setVisibility(View.GONE);
+        findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
+    }
+
+    public Drawable stylish(int resource) {
+        Drawable icon = getResources().getDrawable(resource);
+        icon.setColorFilter(new PorterDuffColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP));
+        return icon;
     }
 
     @Override
@@ -165,8 +201,50 @@ public class ActivityMain extends AppCompatActivity {
                 ((FragmentNews) f).onBackPressed();
                 break;
             } else {
-                super.onBackPressed();
+                if (isExit) {
+                    super.onBackPressed();
+                } else {
+                    Toast.makeText(this, "Для выхода нажмите ещё раз", Toast.LENGTH_SHORT).show();
+                    isExit = true;
+                    Thread t = new Thread (() -> {
+                        try {
+                            Thread.sleep(3000);
+                            Log.d("Run", "work");
+                            isExit = false;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    t.start();
+                }
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        exist = true;
+        if (autoupdate.isChecked()) {
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(DataService.ACTION);
+            registerReceiver(broadcastReceiver, intentFilter);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        exist = false;
+        if (broadcastReceiver != null) {
+            unregisterReceiver(broadcastReceiver);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        exist = null;
+        rc.close();
     }
 }

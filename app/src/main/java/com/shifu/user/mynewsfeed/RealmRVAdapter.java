@@ -1,7 +1,6 @@
 
 package com.shifu.user.mynewsfeed;
 
-import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.shifu.user.mynewsfeed.realm.Article;
+import com.shifu.user.mynewsfeed.realm.State;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
@@ -25,7 +25,11 @@ import java.util.Date;
 import java.util.Locale;
 
 import io.realm.OrderedRealmCollection;
+import io.realm.Realm;
+import io.realm.RealmQuery;
 import io.realm.RealmRecyclerViewAdapter;
+import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class RealmRVAdapter extends RealmRecyclerViewAdapter<Article, RealmRVAdapter.ViewHolder> {
 
@@ -91,16 +95,20 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Article, RealmRVAda
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
         final Article obj = getItem(position);
-
+        Log.d("RA", "Bind "+position);
         if (obj != null) {
             viewHolder.data = obj;
             String text = obj.getTitle();
             viewHolder.title.setText((text == null)?"":text);
 
             text = obj.getUrlToImage();
-            if (text != null) {
-                Log.d("Image", "url: "+text);
-                Picasso.get().load(text).into(viewHolder.image);
+            if (text != null && !text.equals("")) {
+                Log.d("Image", "position: "+position+" title: "+obj.getTitle()+" url: "+text);
+                Picasso.get()
+                        .load(text)
+                        .into(viewHolder.image);
+            } else {
+                viewHolder.image.setImageDrawable(null);
             }
 
             Date date = obj.getPublishedAt();
@@ -116,8 +124,26 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Article, RealmRVAda
 
     }
 
-    public void setData(OrderedRealmCollection<Article> data) {
-        updateData(data);
+    public void updateData() {
+        Realm realm = RealmController.getInstance().getRealmFromLooperThread();
+
+        State state = realm.where(State.class).findFirst();
+        RealmQuery<Article> query;
+        if (state == null) {
+            query = realm.where(Article.class).sort("publishedAt", Sort.DESCENDING);
+        } else {
+            query = realm.where(Article.class).equalTo("category", state.getCategory()).sort("publishedAt", Sort.DESCENDING);
+        }
+        RealmResults<Article> results = query.findAll();
+        updateData(results);
+
+        Log.d("RA", "Load size: "+results.size()+" Category: "+RealmController.getInstance().getCategory());
+
+//        if (data.size() != 0) {
+//            updateData(data);
+//        }
+
+        notifyDataSetChanged();
     }
 
     @Override

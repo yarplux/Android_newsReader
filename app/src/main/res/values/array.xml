@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="res_list_animals">
-        <item>Геральт</item>
-        <item>Ламберт</item>
-        <item>Эскель</item>
-        <item>Весемир</item>
-        <item>Цири</item>
-        <item>Лето</item>
-        <item>Беренгар</item>
+    <string-array name="categories">
+        <item>general|Общее</item>
+        <item>business|Бизнес</item>
+        <item>entertainment|Медиа</item>
+        <item>health|Здоровье</item>
+        <item>science|Наука</item>
+        <item>sports|Спорт</item>
+        <item>technology|Технологии</item>
     </string-array>
 </resources>

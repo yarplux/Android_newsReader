@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">@color/white</color>
-    <color name="colorPrimaryDark">@color/black</color>
-    <color name="colorAccent">@color/grey</color>
+    <color name="colorPrimary">#ee945f</color>
+    <color name="colorPrimaryDark">#c63f17</color>
+    <color name="colorAccent">#5873F2</color>
+
+    <color name="textColorPrimary">@color/black</color>
+    <color name="textColorAccent">@color/white</color>
+
+    <color name="toolbarIconColor">@color/white</color>
+    <color name="listBackgroundColor">@color/white</color>
+    <color name="colorControlActivated">@color/colorPrimaryDark</color>
 
     <color name="grey">#e6e6e6</color>
     <color name="white">#ffffff</color>
