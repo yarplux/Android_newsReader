@@ -195,12 +195,13 @@ public class FragmentRV extends Fragment {
                     Log.d("Articles", "Current: "+chosenCategory);
                     for (JsonArticle obj : response.body().getArticles()) {
                         RealmResults<Article> objsIn = realm.where(Article.class).equalTo("url", obj.getUrl()).findAll();
-                        Log.d("Article "+(i++), "exist in base? " +Boolean.toString(objsIn!=null));
-                        if (objsIn == null && obj.getPublishedAt() != null) {
+                        Log.d("Article "+(i++), /* obj.toString() + */" \nexist in base? " +Boolean.toString(objsIn!=null)+"\npublishedAt: "+obj.getPublishedAt());
+                        if (objsIn.size() == 0 && obj.getPublishedAt() != null) {
                             newArticles++;
-                            Log.d("New Article ("+(Article.getLastID())+")", "Category: "+chosenCategory+" Title: "+obj.getTitle());
-                            realm.copyToRealm(new Article(obj,chosenCategory));
-                        } else if (objsIn != null) {
+                            Article item = new Article(obj,chosenCategory);
+                            realm.copyToRealm(item);
+                            Log.d("New Article ("+item.getUid()+")", " \n"+item.getCategory()+" "+item.getTitle()+"\npublished At: "+item.getPublishedAt());
+                        } else if (objsIn.size() > 0) {
                             Boolean flag = true;
                             for (Article objIn : objsIn) {
                                 if (objIn.getCategory() != null && objIn.getCategory().equals(chosenCategory)) {

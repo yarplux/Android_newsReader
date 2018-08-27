@@ -1,5 +1,7 @@
 package com.shifu.user.mynewsfeed.realm;
 
+import android.util.Log;
+
 import com.shifu.user.mynewsfeed.json.JsonArticle;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -14,7 +16,7 @@ import io.realm.RealmObject;
 
 public class Article extends RealmObject {
 
-    private final static DateFormat DATE_FORMAT_OUT = new SimpleDateFormat("yyyy-mm-dd'T'HH:mm:ss", Locale.US);
+    private final static DateFormat DATE_FORMAT_OUT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
 
     private static AtomicLong lastID = new AtomicLong();
 
@@ -92,13 +94,15 @@ public class Article extends RealmObject {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("name", name)
+                .append("\nuid", uid)
+                .append("category", category)
+                .append("\nname", name)
                 .append("author", author)
                 .append("title", title)
-                .append("description", description)
-                .append("url", url)
-                .append("urlToImage", urlToImage)
-                .append("publishedAt", publishedAt)
+                .append("\ndescription", description)
+                .append("\nurl", url)
+                .append("\nurlToImage", urlToImage)
+                .append("\npublishedAt", publishedAt)
                 .toString();
     }
 

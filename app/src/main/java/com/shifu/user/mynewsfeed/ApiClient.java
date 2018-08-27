@@ -39,7 +39,7 @@ public class ApiClient {
 
         OkHttpClient.Builder okHttpBuilder = new OkHttpClient.Builder();
         okHttpBuilder
-                .addInterceptor(interceptor)
+//                .addInterceptor(interceptor)
                 .readTimeout(timeout, TimeUnit.SECONDS)
                 .connectTimeout(timeout, TimeUnit.SECONDS);
 

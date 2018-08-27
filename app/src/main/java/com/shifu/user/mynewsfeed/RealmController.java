@@ -55,7 +55,9 @@ public class RealmController {
         if (state == null) {
             return realm.where(Article.class).sort("publishedAt", Sort.DESCENDING).findAll();
         } else {
-            return realm.where(Article.class).equalTo("category", state.getCategory()).sort("publishedAt", Sort.DESCENDING).findAll();
+            return realm.where(Article.class)
+                    .equalTo("category", state.getCategory())
+                    .sort("uid").findAll();
         }
     }
 
@@ -73,10 +75,6 @@ public class RealmController {
     /*
      * Update data functions
      */
-
-    public void refresh(){
-        realm.refresh();
-    }
 
     public void setCategory(String category) {
         realm.executeTransaction(trRealm -> {

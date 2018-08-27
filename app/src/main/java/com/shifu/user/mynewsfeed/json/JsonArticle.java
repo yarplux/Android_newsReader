@@ -5,8 +5,6 @@ import com.google.gson.annotations.SerializedName;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import java.util.Date;
-
 public class JsonArticle {
 
     @SerializedName("source")
@@ -64,13 +62,13 @@ public class JsonArticle {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .append("source", source)
-                .append("author", author)
-                .append("title", title)
-                .append("description", description)
-                .append("url", url)
-                .append("urlToImage", urlToImage)
-                .append("publishedAt", publishedAt)
+                .append("\nsource", source)
+                .append("\nauthor", author)
+                .append("\ntitle", title)
+                .append("\ndescription", description)
+                .append("\nurl", url)
+                .append("\nurlToImage", urlToImage)
+                .append("\npublishedAt", publishedAt)
                 .toString();
     }
 

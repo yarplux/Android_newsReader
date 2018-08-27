@@ -95,15 +95,16 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Article, RealmRVAda
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
         final Article obj = getItem(position);
-        Log.d("RA", "Bind "+position);
         if (obj != null) {
+            //Log.d("RA Bind to "+position, obj.getTitle());
+
             viewHolder.data = obj;
             String text = obj.getTitle();
             viewHolder.title.setText((text == null)?"":text);
 
             text = obj.getUrlToImage();
             if (text != null && !text.equals("")) {
-                Log.d("Image", "position: "+position+" title: "+obj.getTitle()+" url: "+text);
+                //Log.d("Image", "position: "+position+" title: "+obj.getTitle()+" url: "+text);
                 Picasso.get()
                         .load(text)
                         .into(viewHolder.image);
@@ -113,12 +114,14 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Article, RealmRVAda
 
             Date date = obj.getPublishedAt();
             if (date != null) {
+                //Log.d("RA Bind to "+position, obj.getPublishedAt().toString());
                 viewHolder.published.setText(DATE_FORMAT_IN.format(date));
             }
 
             text = obj.getAuthor();
             if (text == null) text = obj.getName();
             if (text == null) text = "-";
+            //Log.d("RA Bind to "+position, text);
             viewHolder.source.setText(res.getString(R.string.source, text));
         }
 
@@ -130,9 +133,12 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Article, RealmRVAda
         State state = realm.where(State.class).findFirst();
         RealmQuery<Article> query;
         if (state == null) {
-            query = realm.where(Article.class).sort("publishedAt", Sort.DESCENDING);
+            query = realm.where(Article.class)
+                    .sort("uid");
         } else {
-            query = realm.where(Article.class).equalTo("category", state.getCategory()).sort("publishedAt", Sort.DESCENDING);
+            query = realm.where(Article.class)
+                    .equalTo("category", state.getCategory())
+                    .sort("uid");
         }
         RealmResults<Article> results = query.findAll();
         updateData(results);
