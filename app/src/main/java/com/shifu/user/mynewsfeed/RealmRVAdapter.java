@@ -128,26 +128,23 @@ public class RealmRVAdapter extends RealmRecyclerViewAdapter<Article, RealmRVAda
     }
 
     public void updateData() {
-        Realm realm = RealmController.getInstance().getRealmFromLooperThread();
+        Realm realm = Realm.getDefaultInstance();
 
         State state = realm.where(State.class).findFirst();
         RealmQuery<Article> query;
         if (state == null) {
             query = realm.where(Article.class)
-                    .sort("uid");
+                    .sort("uid", Sort.DESCENDING);
         } else {
             query = realm.where(Article.class)
                     .equalTo("category", state.getCategory())
-                    .sort("uid");
+                    .sort("uid", Sort.DESCENDING);
         }
         RealmResults<Article> results = query.findAll();
         updateData(results);
 
-        Log.d("RA", "Load size: "+results.size()+" Category: "+RealmController.getInstance().getCategory());
-
-//        if (data.size() != 0) {
-//            updateData(data);
-//        }
+        State out = realm.where(State.class).findFirst();
+        Log.d("RA", "Load size: "+results.size()+" Category: "+((out == null)?null:out.getCategory()));
 
         notifyDataSetChanged();
     }

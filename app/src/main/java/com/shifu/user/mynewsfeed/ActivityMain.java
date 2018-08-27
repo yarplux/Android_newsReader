@@ -7,9 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -26,25 +23,37 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.shifu.user.mynewsfeed.realm.Article;
+import com.shifu.user.mynewsfeed.realm.State;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.realm.Realm;
+import io.realm.RealmResults;
+import io.realm.Sort;
+
+import static com.shifu.user.mynewsfeed.AppGlobals.*;
 
 public class ActivityMain extends AppCompatActivity {
-
-    public static Boolean exist;
 
     private DrawerLayout mDrawer;
     private NavigationView nvDrawer;
     private SwitchCompat autoupdate;
 
     AlarmManager am;
-
+    private Realm realm;
     private RealmRVAdapter ra;
-    private RealmController rc;
+
     private Boolean isExit = false;
 
-    DataResponseBroadcastReceiver broadcastReceiver;
+    Disposable disposable;
+
 
     public static Map<String, String> categories = new HashMap <>();
 
@@ -52,80 +61,87 @@ public class ActivityMain extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        am =(AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        try {
+            if (am != null) am.cancel(scheduleAlarm());
+        } catch (Exception e) {
+            Log.e("Main", "AlarmManager update was not canceled. " + e.toString());
+        }
+
+
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         setContentView(R.layout.main);
 
-        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.cancelAll();
 
+        Realm.init(this);
+        realm = Realm.getDefaultInstance();
+        realm.setAutoRefresh(true);
 
-        rc = new RealmController(this);
-        rc.stateInit();
-
-        ra =  new RealmRVAdapter(rc.getArticles(), getResources());
-
-
-        mDrawer = findViewById(R.id.drawer_layout);
-        nvDrawer = findViewById(R.id.nvView);
+        Boolean isAutoupdate;
+        String text = "Новости без категории";
 
         for (String str : getResources().getStringArray(R.array.categories)) {
             categories.put(str.substring(0, str.indexOf('|')), str.substring(str.indexOf('|')+1));
         }
 
+        RealmResults<Article> articles;
+        if (realm.where(State.class).count() == 0) {
+            realm.executeTransaction(trRealm -> trRealm.copyToRealm(new State()));
+            isAutoupdate = false;
+
+            articles = realm.where(Article.class)
+                    .sort("uid", Sort.DESCENDING)
+                    .findAll();
+        } else {
+            State state = realm.where(State.class).findFirst();
+            isAutoupdate = state.getAutoupdate();
+            if (isAutoupdate == null) isAutoupdate = false;
+            if (state.getCategory() != null) text = categories.get(state.getCategory());
+
+            articles = realm.where(Article.class)
+                    .equalTo("category", state.getCategory())
+                    .sort("uid", Sort.DESCENDING)
+                    .findAll();
+        }
+
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.cancelAll();
+
+        ra =  new RealmRVAdapter(articles, getResources());
+        FragmentRV fragmentRV = new FragmentRV();
+
+        mDrawer = findViewById(R.id.drawer_layout);
+        nvDrawer = findViewById(R.id.nvView);
+
         View hView = nvDrawer.getHeaderView(0);
         TextView category = hView.findViewById(R.id.category);
-        String text = rc.getCategory();
-        if (text == null) {
-            text = "Новости без категории";
-        } else {
-            text = categories.get(text);
-        }
         category.setText(getResources().getString(R.string.category, text));
 
         LinearLayout mView = (LinearLayout) nvDrawer.getMenu().findItem(R.id.update).getActionView();
-
         autoupdate = mView.findViewById(R.id.drawer_switch);
-        autoupdate.setChecked(rc.getAutoupdate());
-        if (rc.getAutoupdate()) {
-            broadcastReceiver= new DataResponseBroadcastReceiver();
-            IntentFilter intentFilter= new IntentFilter();
-            intentFilter.addAction(DataService.ACTION);
-            registerReceiver(broadcastReceiver,intentFilter);
+        autoupdate.setChecked(isAutoupdate);
 
-            scheduleAlarm();
-        }
+        disposable = Flowable.interval(15, TimeUnit.SECONDS)
+                .filter(i -> autoupdate.isChecked())
+                .concatMap(i -> FragmentRV.getArticles(getApplicationContext()))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(i -> FragmentRV.verifyStoragePermissionsAndRequest(this));
 
         autoupdate.setOnCheckedChangeListener((compoundButton, isChecked) -> {
-            rc.setAutoupdate(isChecked);
-            if (isChecked) {
-                broadcastReceiver= new DataResponseBroadcastReceiver();
-                IntentFilter intentFilter= new IntentFilter();
-                intentFilter.addAction(DataService.ACTION);
-                registerReceiver(broadcastReceiver,intentFilter);
-
-                scheduleAlarm();
-            } else {
-                try {
-                    if (am != null) am.cancel(scheduleAlarm());
-                    Toast.makeText(this, "Автообновление новостей отключено", Toast.LENGTH_LONG).show();
-                } catch (Exception e) {
-                    Log.e("Main", "AlarmManager update was not canceled. " + e.toString());
-                }
+            realm.executeTransaction(trRealm -> trRealm.where(State.class).findFirst().setAutoupdate(isChecked));
+            if (!isChecked) {
+                if (disposable != null && !disposable.isDisposed()) disposable.dispose();
             }
         });
 
-
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        ImageButton menu = findViewById(R.id.menu);
-        menu.setImageDrawable(stylish(R.drawable.icons8_menu_24));
-        menu.setOnClickListener(view -> {
-            for(Fragment f : getSupportFragmentManager().getFragments()) {
+        toolbar.setNavigationIcon(stylish(R.drawable.icons8_menu_24, getResources()));
+        toolbar.setNavigationOnClickListener(view -> {
+            for (Fragment f : getSupportFragmentManager().getFragments()) {
                 if (f != null && f instanceof FragmentNews) {
                     ((FragmentNews) f).onBackPressed();
                     return;
@@ -137,7 +153,10 @@ public class ActivityMain extends AppCompatActivity {
         nvDrawer.setNavigationItemSelectedListener(menuItem -> {
             switch (menuItem.getItemId()) {
                 case R.id.clear:
-                    rc.clear();
+                    realm.executeTransactionAsync(trRealm -> {
+                        trRealm.where(Article.class).findAll().deleteAllFromRealm();
+                    });
+                    mDrawer.closeDrawer(nvDrawer);
                     break;
             }
             return true;
@@ -145,21 +164,15 @@ public class ActivityMain extends AppCompatActivity {
         });
 
         ImageButton filter = findViewById(R.id.filter);
-        filter.setImageDrawable(stylish(R.drawable.icons8_filter_24));
+        filter.setImageDrawable(stylish(R.drawable.icons8_filter_24, getResources()));
 
-        FragmentRV fragmentRV = new FragmentRV();
         getSupportFragmentManager()
                 .beginTransaction()
                 .add(R.id.container, fragmentRV, "START")
                 .commit();
-
-
-
     }
 
     private PendingIntent scheduleAlarm() {
-        long startTime=System.currentTimeMillis();
-
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 getApplicationContext(),
                 0,
@@ -168,8 +181,11 @@ public class ActivityMain extends AppCompatActivity {
                         .putExtra("task", "Выполнить!"),
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
-        am =(AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        am.setInexactRepeating(AlarmManager.RTC_WAKEUP,startTime,AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
+        am.setInexactRepeating(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis(),
+                AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                pendingIntent);
 
         return pendingIntent;
     }
@@ -187,11 +203,6 @@ public class ActivityMain extends AppCompatActivity {
         findViewById(R.id.toolbar).setVisibility(View.VISIBLE);
     }
 
-    public Drawable stylish(int resource) {
-        Drawable icon = getResources().getDrawable(resource);
-        icon.setColorFilter(new PorterDuffColorFilter(getResources().getColor(R.color.white), PorterDuff.Mode.SRC_ATOP));
-        return icon;
-    }
 
     @Override
     public void onBackPressed() {
@@ -209,7 +220,6 @@ public class ActivityMain extends AppCompatActivity {
                     Thread t = new Thread (() -> {
                         try {
                             Thread.sleep(3000);
-                            Log.d("Run", "work");
                             isExit = false;
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -222,29 +232,25 @@ public class ActivityMain extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        exist = true;
+    protected void onStop() {
+        if (realm != null && !realm.isClosed()) realm.close();
+        if (disposable != null && !disposable.isDisposed()) disposable.dispose();
+
         if (autoupdate.isChecked()) {
+            DataResponseBroadcastReceiver broadcastReceiver= new DataResponseBroadcastReceiver();
+
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(DataService.ACTION);
             registerReceiver(broadcastReceiver, intentFilter);
-        }
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        exist = false;
-        if (broadcastReceiver != null) {
-            unregisterReceiver(broadcastReceiver);
+            if (am == null) {
+                Toast.makeText(this, "Невозможно запустить автообновление новостей в фоне", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Log.d("Main", "onDestroyUpdateInit");
+                scheduleAlarm();
+            }
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        exist = null;
-        rc.close();
+        super.onStop();
     }
 }

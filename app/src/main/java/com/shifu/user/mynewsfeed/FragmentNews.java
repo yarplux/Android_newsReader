@@ -1,13 +1,11 @@
 package com.shifu.user.mynewsfeed;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;
@@ -15,6 +13,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageButton;
+
+import static com.shifu.user.mynewsfeed.AppGlobals.*;
 
 public class FragmentNews extends Fragment implements OnBackPressed {
 
@@ -81,7 +81,6 @@ public class FragmentNews extends Fragment implements OnBackPressed {
 
     @Override
     public void onBackPressed() {
-
         if(mWebView.canGoBack()) {
             mWebView.goBack();
         } else {
@@ -94,9 +93,10 @@ public class FragmentNews extends Fragment implements OnBackPressed {
         super.onPause();
         mProgressView.setVisibility(View.GONE);
         isLoaded = false;
-        ActivityMain activity = ((ActivityMain) getActivity());
-        ImageButton ib = activity.findViewById(R.id.menu);
-        ib.setImageDrawable(activity.stylish(R.drawable.icons8_menu_24));
+
+        Toolbar t = getActivity().findViewById(R.id.toolbar);
+        t.setNavigationIcon(stylish(R.drawable.icons8_menu_24, getResources()));
+        getActivity().findViewById(R.id.filter).setVisibility(View.VISIBLE);
 
     }
 
@@ -104,9 +104,11 @@ public class FragmentNews extends Fragment implements OnBackPressed {
     public void onResume(){
         super.onResume();
         isLoaded = true;
-        ActivityMain activity = ((ActivityMain) getActivity());
-        ImageButton ib = activity.findViewById(R.id.menu);
-        ib.setImageDrawable(activity.stylish(R.drawable.icons8_close_24));
+
+        Toolbar t = getActivity().findViewById(R.id.toolbar);
+        t.setNavigationIcon(stylish(R.drawable.icons8_close_24, getResources()));
+        getActivity().findViewById(R.id.filter).setVisibility(View.GONE);
+
     }
 
     private void showProgress(final boolean show) {

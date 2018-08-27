@@ -1,6 +1,7 @@
 package com.shifu.user.mynewsfeed;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -24,7 +25,6 @@ import com.shifu.user.mynewsfeed.realm.State;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -39,10 +39,9 @@ public class FragmentRV extends Fragment {
 
     private RecyclerView rv;
     private RealmRVAdapter ra = RealmRVAdapter.getInstance();
-    private static RealmController rc = RealmController.getInstance();
     private static ApiInterface api = ApiClient.getInstance().getApi();
 
-    Disposable disposable;
+    public static Disposable disposable;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -50,10 +49,7 @@ public class FragmentRV extends Fragment {
 
         View rootView = inflater.inflate(R.layout.list_layout, container, false);
 
-        rc = RealmController.getInstance();
         api = ApiClient.getInstance().getApi();
-
-        Log.d("RV", "is rc null? "+Boolean.toString(rc==null));
 
         rv = rootView.findViewById(R.id.recyclerView);
         rv.setHasFixedSize(true);
@@ -109,31 +105,28 @@ public class FragmentRV extends Fragment {
                                 category.setText(getResources().getString(R.string.category, str));
                             }
                         }
-
-                        if (disposable != null && !disposable.isDisposed()) disposable.dispose();
-                        disposable = getArticles(getContext(), false, null)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(i -> verifyStoragePermissionsAndRequest());
-
+                        processRequest(getContext(), (ActivityMain) getActivity());
                     });
         });
 
-        if (disposable != null && !disposable.isDisposed()) disposable.dispose();
-        disposable = getArticles(getContext(), false, null)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(i -> verifyStoragePermissionsAndRequest());
-
+        processRequest(getContext(), (ActivityMain) getActivity());
         return rootView;
     }
 
-    public static Flowable<Integer> getArticles(Context context, Boolean fromBack, String key){
-        Log.d("getArticles","Start loading. From back? "+fromBack);
+    private static void processRequest(Context context, ActivityMain activity) {
+        if (disposable != null && !disposable.isDisposed()) disposable.dispose();
+        disposable = getArticles(context)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(i -> verifyStoragePermissionsAndRequest(activity));
+    }
+
+
+    public static Flowable<Integer> getArticles(Context context){
         Map<String, String> options = new HashMap<>();
         options.put("country", "ru");
 
         return   Flowable
                 .fromCallable(() -> {
-                    if (fromBack) Realm.init(context);
                     Realm realm = Realm.getDefaultInstance();
                     realm.refresh();
                     State item = realm.where(State.class).findFirst();
@@ -148,19 +141,13 @@ public class FragmentRV extends Fragment {
                 .observeOn(Schedulers.io())
                 .concatMap(i -> {
                     Log.d("REST", "Request category: "+i);
-                    if (key != null) {
-                        return api.loadNews(options, key);
-                    } else {
-                        return api.loadNews(options, context.getResources().getString(R.string.api_key));
-                    }
+                    return api.loadNews(options, context.getResources().getString(R.string.api_key));
                 })
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(t-> {
                     Log.d("REST", "Failure: "+t.toString());
                     t.printStackTrace();
-                    if (!fromBack) {
-                        Toast.makeText(context, "Ошибка соединения с сервером", Toast.LENGTH_LONG).show();
-                    }
+                    Toast.makeText(context, "Ошибка соединения с сервером", Toast.LENGTH_LONG).show();
                 })
                 .filter(response -> {
                     if (response.isSuccessful()
@@ -175,9 +162,7 @@ public class FragmentRV extends Fragment {
                         } else {
                             Log.e("REST error: ", null);
                         }
-                        if (!fromBack) {
-                            Toast.makeText(context, "Ошибка получения данных", Toast.LENGTH_LONG).show();
-                        }
+                        Toast.makeText(context, "Ошибка получения данных", Toast.LENGTH_LONG).show();
                         return false;
                     }
                 })
@@ -224,20 +209,20 @@ public class FragmentRV extends Fragment {
                 });
     }
 
-    public void verifyStoragePermissionsAndRequest() {
+    public static void verifyStoragePermissionsAndRequest(ActivityMain activity) {
         String[] permissions = { Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE };
-        int permission = ActivityCompat.checkSelfPermission(getActivity(), permissions[0]);
+        int permission = ActivityCompat.checkSelfPermission(activity, permissions[0]);
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(getActivity(), permissions, 0);
+            ActivityCompat.requestPermissions(activity, permissions, 0);
         } else {
-            ((ActivityMain) getActivity()).finishLoading();
+           activity.finishLoading();
         }
     }
 
     @Override
     public void onResume(){
-        super.onResume();
         rv.setAdapter(ra);
+        super.onResume();
     }
 
     @Override
