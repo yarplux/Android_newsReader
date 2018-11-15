@@ -1,8 +1,8 @@
-package com.shifu.user.mynewsfeed.realm;
+package com.shifu.user.newsproject.realm;
 
 import android.util.Log;
 
-import com.shifu.user.mynewsfeed.json.JsonArticle;
+import com.shifu.user.newsproject.json.JsonArticle;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 

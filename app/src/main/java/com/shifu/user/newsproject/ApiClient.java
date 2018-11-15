@@ -1,4 +1,4 @@
-package com.shifu.user.mynewsfeed;
+package com.shifu.user.newsproject;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

@@ -1,4 +1,4 @@
-package com.shifu.user.mynewsfeed.realm;
+package com.shifu.user.newsproject.realm;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 

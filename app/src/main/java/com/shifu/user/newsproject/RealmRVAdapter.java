@@ -1,5 +1,5 @@
 
-package com.shifu.user.mynewsfeed;
+package com.shifu.user.newsproject;
 
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -15,8 +15,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.shifu.user.mynewsfeed.realm.Article;
-import com.shifu.user.mynewsfeed.realm.State;
+import com.shifu.user.newsproject.realm.Article;
+import com.shifu.user.newsproject.realm.State;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;

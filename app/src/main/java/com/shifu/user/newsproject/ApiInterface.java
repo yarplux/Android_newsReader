@@ -1,6 +1,6 @@
-package com.shifu.user.mynewsfeed;
+package com.shifu.user.newsproject;
 
-import com.shifu.user.mynewsfeed.json.JsonArticles;
+import com.shifu.user.newsproject.json.JsonArticles;
 
 import java.util.Map;
 

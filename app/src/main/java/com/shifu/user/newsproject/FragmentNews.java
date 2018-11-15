@@ -1,4 +1,4 @@
-package com.shifu.user.mynewsfeed;
+package com.shifu.user.newsproject;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -14,7 +14,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageButton;
 
-import static com.shifu.user.mynewsfeed.AppGlobals.*;
+import static com.shifu.user.newsproject.AppGlobals.*;
 
 public class FragmentNews extends Fragment implements OnBackPressed {
 

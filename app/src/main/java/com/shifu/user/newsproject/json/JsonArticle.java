@@ -1,4 +1,4 @@
-package com.shifu.user.mynewsfeed.json;
+package com.shifu.user.newsproject.json;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

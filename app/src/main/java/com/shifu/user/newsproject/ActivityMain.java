@@ -1,4 +1,4 @@
-package com.shifu.user.mynewsfeed;
+package com.shifu.user.newsproject;
 
 import android.app.AlarmManager;
 import android.app.NotificationManager;
@@ -16,6 +16,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -23,8 +25,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.shifu.user.mynewsfeed.realm.Article;
-import com.shifu.user.mynewsfeed.realm.State;
+import com.shifu.user.newsproject.realm.Article;
+import com.shifu.user.newsproject.realm.State;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +40,10 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
-import static com.shifu.user.mynewsfeed.AppGlobals.*;
+import io.sentry.Sentry;
+import io.sentry.android.AndroidSentryClientFactory;
+
+import static com.shifu.user.newsproject.AppGlobals.*;
 
 public class ActivityMain extends AppCompatActivity {
 
@@ -54,27 +59,41 @@ public class ActivityMain extends AppCompatActivity {
 
     Disposable disposable;
 
-
     public static Map<String, String> categories = new HashMap <>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        am =(AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Context ctx = this.getApplicationContext();
+        String sentryDsn = "https://b0f262ea90f8499cb367c3c6b3261f02@sentry.io/1316369";
+        Sentry.init(sentryDsn, new AndroidSentryClientFactory(ctx));
+
+        setContentView(R.layout.main);
+        mDrawer = findViewById(R.id.drawer_layout);
+
+        nvDrawer = findViewById(R.id.nvView);
+        View hView = nvDrawer.getHeaderView(0);
+        TextView category = hView.findViewById(R.id.category);
+
+        Menu menu = nvDrawer.getMenu();
+        MenuItem menuItem = menu.findItem(R.id.update);
+        LinearLayout mView = (LinearLayout) menuItem.getActionView();
+        autoupdate = mView.findViewById(R.id.drawer_switch);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        am =(AlarmManager) getSystemService(android.content.Context.ALARM_SERVICE);
         try {
             if (am != null) am.cancel(scheduleAlarm());
         } catch (Exception e) {
             Log.e("Main", "AlarmManager update was not canceled. " + e.toString());
         }
 
-
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        setContentView(R.layout.main);
-
 
         Realm.init(this);
         realm = Realm.getDefaultInstance();
@@ -107,21 +126,14 @@ public class ActivityMain extends AppCompatActivity {
                     .findAll();
         }
 
-        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager nm = (NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
         nm.cancelAll();
 
         ra =  new RealmRVAdapter(articles, getResources());
         FragmentRV fragmentRV = new FragmentRV();
 
-        mDrawer = findViewById(R.id.drawer_layout);
-        nvDrawer = findViewById(R.id.nvView);
-
-        View hView = nvDrawer.getHeaderView(0);
-        TextView category = hView.findViewById(R.id.category);
         category.setText(getResources().getString(R.string.category, text));
 
-        LinearLayout mView = (LinearLayout) nvDrawer.getMenu().findItem(R.id.update).getActionView();
-        autoupdate = mView.findViewById(R.id.drawer_switch);
         autoupdate.setChecked(isAutoupdate);
 
         disposable = Flowable.interval(15, TimeUnit.SECONDS)
@@ -137,8 +149,6 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(stylish(R.drawable.icons8_menu_24, getResources()));
         toolbar.setNavigationOnClickListener(view -> {
             for (Fragment f : getSupportFragmentManager().getFragments()) {
@@ -150,8 +160,8 @@ public class ActivityMain extends AppCompatActivity {
             mDrawer.openDrawer(nvDrawer);
         });
 
-        nvDrawer.setNavigationItemSelectedListener(menuItem -> {
-            switch (menuItem.getItemId()) {
+        nvDrawer.setNavigationItemSelectedListener(mItem -> {
+            switch (mItem.getItemId()) {
                 case R.id.clear:
                     realm.executeTransactionAsync(trRealm -> {
                         trRealm.where(Article.class).findAll().deleteAllFromRealm();
@@ -163,6 +173,7 @@ public class ActivityMain extends AppCompatActivity {
 
         });
 
+
         ImageButton filter = findViewById(R.id.filter);
         filter.setImageDrawable(stylish(R.drawable.icons8_filter_24, getResources()));
 
@@ -170,6 +181,7 @@ public class ActivityMain extends AppCompatActivity {
                 .beginTransaction()
                 .add(R.id.container, fragmentRV, "START")
                 .commit();
+
     }
 
     private PendingIntent scheduleAlarm() {
@@ -236,7 +248,7 @@ public class ActivityMain extends AppCompatActivity {
         if (realm != null && !realm.isClosed()) realm.close();
         if (disposable != null && !disposable.isDisposed()) disposable.dispose();
 
-        if (autoupdate.isChecked()) {
+        if (autoupdate != null && autoupdate.isChecked()) {
             DataResponseBroadcastReceiver broadcastReceiver= new DataResponseBroadcastReceiver();
 
             IntentFilter intentFilter = new IntentFilter();

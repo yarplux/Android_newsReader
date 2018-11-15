@@ -1,4 +1,4 @@
-package com.shifu.user.mynewsfeed;
+package com.shifu.user.newsproject;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

@@ -1,4 +1,4 @@
-package com.shifu.user.mynewsfeed;
+package com.shifu.user.newsproject;
 
 import android.app.Activity;
 import android.app.IntentService;
@@ -12,9 +12,9 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
-import com.shifu.user.mynewsfeed.json.JsonArticle;
-import com.shifu.user.mynewsfeed.realm.Article;
-import com.shifu.user.mynewsfeed.realm.State;
+import com.shifu.user.newsproject.json.JsonArticle;
+import com.shifu.user.newsproject.realm.Article;
+import com.shifu.user.newsproject.realm.State;
 
 import java.util.HashMap;
 import java.util.Map;

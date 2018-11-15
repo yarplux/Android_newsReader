@@ -1,4 +1,4 @@
-package com.shifu.user.mynewsfeed;
+package com.shifu.user.newsproject;
 
 import android.Manifest;
 import android.app.Activity;
@@ -19,9 +19,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.shifu.user.mynewsfeed.json.JsonArticle;
-import com.shifu.user.mynewsfeed.realm.Article;
-import com.shifu.user.mynewsfeed.realm.State;
+import com.shifu.user.newsproject.json.JsonArticle;
+import com.shifu.user.newsproject.realm.Article;
+import com.shifu.user.newsproject.realm.State;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ import io.reactivex.schedulers.Schedulers;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-import static com.shifu.user.mynewsfeed.CustomDialogCall.showRadioButtonDialog;
+import static com.shifu.user.newsproject.CustomDialogCall.showRadioButtonDialog;
 
 public class FragmentRV extends Fragment {
 
